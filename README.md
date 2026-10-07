@@ -1,4 +1,4 @@
-# Backend Ledger: transaction safety extensions
+# Geeky Bank: transaction-safe ledger API
 
 An educational Node.js, Express and MongoDB banking API based on [Ankur Prajapati's backend-ledger](https://github.com/ankurdotio/backend-ledger) and the Sheryians Coding School advanced backend tutorial. Original tutorial authorship and Git history are preserved. The extensions in this version were developed with Codex assistance for Nikhil's portfolio.
 
