@@ -11,6 +11,8 @@ const ledgerSchema = new mongoose.Schema({
     },
     amount: {
         type: Number,
+        min: 1,
+        validate: Number.isSafeInteger,
         required: [ true, "Amount is required for creating a ledger entry" ],
         immutable: true
     },
@@ -46,6 +48,8 @@ ledgerSchema.pre('updateMany', preventLedgerModification);
 ledgerSchema.pre("findOneAndDelete", preventLedgerModification);
 ledgerSchema.pre("findOneAndReplace", preventLedgerModification);
 
+
+ledgerSchema.index({ transaction: 1, type: 1 }, { unique: true });
 
 const ledgerModel = mongoose.model('ledger', ledgerSchema);
 
