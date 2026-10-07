@@ -16,6 +16,7 @@ const accountSchema = new mongoose.Schema({
         },
         default: "ACTIVE"
     },
+    ledgerVersion: { type: Number, default: 0 },
     currency: {
         type: String,
         required: [ true, "Currency is required for creating an account" ],
@@ -27,7 +28,7 @@ const accountSchema = new mongoose.Schema({
 
 accountSchema.index({ user: 1, status: 1 })
 
-accountSchema.methods.getBalance = async function () {
+accountSchema.methods.getBalance = async function (session = null) {
 
     const balanceData = await ledgerModel.aggregate([
         { $match: { account: this._id } },
@@ -60,7 +61,7 @@ accountSchema.methods.getBalance = async function () {
                 balance: { $subtract: [ "$totalCredit", "$totalDebit" ] }
             }
         }
-    ])
+    ]).session(session)
 
     if (balanceData.length === 0) {
         return 0

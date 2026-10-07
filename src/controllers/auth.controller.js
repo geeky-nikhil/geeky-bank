@@ -8,7 +8,9 @@ const tokenBlackListModel = require("../models/blackList.model")
 * - POST /api/auth/register
 */
 async function userRegisterController(req, res) {
-    const { email, password, name } = req.body
+    const { password, name } = req.body
+    const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : ""
+    if (typeof password !== "string" || password.length < 8 || Buffer.byteLength(password) > 72 || typeof name !== "string" || !name.trim()) return res.status(400).json({ message: "Valid name, email and 8-72 byte password required" })
 
     const isExists = await userModel.findOne({
         email: email
@@ -27,7 +29,7 @@ async function userRegisterController(req, res) {
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "3d" })
 
-    res.cookie("token", token)
+    res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", maxAge: 3 * 86400000 })
 
     res.status(201).json({
         user: {
@@ -38,7 +40,7 @@ async function userRegisterController(req, res) {
         token
     })
 
-    await emailService.sendRegistrationEmail(user.email, user.name)
+    void emailService.sendRegistrationEmail(user.email, user.name).catch(() => console.error("Registration notification failed"))
 }
 
 /**
@@ -47,7 +49,9 @@ async function userRegisterController(req, res) {
   */
 
 async function userLoginController(req, res) {
-    const { email, password } = req.body
+    const { password } = req.body
+    const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : ""
+    if (!email || typeof password !== "string" || Buffer.byteLength(password) > 72) return res.status(400).json({ message: "Invalid credentials" })
 
     const user = await userModel.findOne({ email }).select("+password")
 
@@ -67,7 +71,7 @@ async function userLoginController(req, res) {
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "3d" })
 
-    res.cookie("token", token)
+    res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", maxAge: 3 * 86400000 })
 
     res.status(200).json({
         user: {
